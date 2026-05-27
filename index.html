@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+
+<title>Timezone Scheduler</title>
+
+<style>
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    font-family:
+      Inter,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top, #1f2937 0%, #09090b 45%);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .header p {
+    margin-top: 12px;
+    color: #a1a1aa;
+    font-size: 14px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .time-card {
+    position: relative;
+    overflow: hidden;
+
+    background:
+      rgba(18, 18, 20, 0.88);
+
+    border:
+      1px solid rgba(255,255,255,0.08);
+
+    backdrop-filter: blur(22px);
+
+    border-radius: 34px;
+
+    min-height: 280px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.45);
+
+    user-select: none;
+    touch-action: none;
+
+    transition:
+      transform 0.15s ease;
+  }
+
+  .time-card:active {
+    transform: scale(0.985);
+  }
+
+  .city {
+    color: #a1a1aa;
+    font-size: 14px;
+    margin-bottom: 18px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .time {
+    font-size: clamp(2rem, 7vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .date {
+    margin-top: 18px;
+    color: #d4d4d8;
+    font-size: clamp(12px, 2vw, 18px);
+    line-height: 1.5;
+    padding: 0 12px;
+  }
+
+  .timezone {
+    margin-top: 16px;
+    color: #71717a;
+    font-size: 11px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 34px;
+  }
+
+  button {
+    border: none;
+    border-radius: 18px;
+    padding: 14px 22px;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease,
+      background 0.15s ease;
+  }
+
+  button:active {
+    transform: scale(0.96);
+  }
+
+  .primary-btn {
+    background: white;
+    color: black;
+  }
+
+  .secondary-btn {
+    background: #27272a;
+    color: white;
+    border: 1px solid #3f3f46;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(0,0,0,0.6);
+
+    backdrop-filter: blur(10px);
+
+    display: none;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    z-index: 100;
+  }
+
+  .modal {
+    width: 100%;
+    max-width: 520px;
+
+    background: #111114;
+
+    border:
+      1px solid rgba(255,255,255,0.08);
+
+    border-radius: 30px;
+
+    padding: 28px;
+  }
+
+  .modal h2 {
+    margin-top: 0;
+    margin-bottom: 28px;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #a1a1aa;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+
+    background: #18181b;
+
+    border:
+      1px solid #27272a;
+
+    border-radius: 14px;
+
+    padding: 14px;
+
+    color: white;
+
+    font-size: 15px;
+
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: white;
+  }
+
+  .modal-actions {
+    margin-top: 28px;
+
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  @media (max-width: 640px) {
+
+    body {
+      padding: 14px;
+    }
+
+    .cards {
+      gap: 12px;
+    }
+
+    .time-card {
+      min-height: 230px;
+      border-radius: 28px;
+      padding: 10px;
+    }
+
+    .city {
+      font-size: 11px;
+    }
+
+    .timezone {
+      font-size: 9px;
+    }
+
+    button {
+      width: 100%;
+    }
+
+    .controls {
+      flex-direction: column;
+    }
+
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+
+    <h1>Timezone Scheduler</h1>
+
+    <p>
+      Drag vertically to use it
+    </p>
+
+  </div>
+
+  <div class="cards">
+
+    <!-- Vietnam -->
+    <div
+      class="time-card"
+      id="vnCard"
+    >
+
+      <div class="city">
+        Vietnam
+      </div>
+
+      <div
+        class="time"
+        id="vnTime"
+      ></div>
+
+      <div
+        class="date"
+        id="vnDate"
+      ></div>
+
+      <div class="timezone">
+        Asia/Ho_Chi_Minh
+      </div>
+
+    </div>
+
+    <!-- Virginia -->
+    <div
+      class="time-card"
+      id="vaCard"
+    >
+
+      <div class="city">
+        Virginia
+      </div>
+
+      <div
+        class="time"
+        id="vaTime"
+      ></div>
+
+      <div
+        class="date"
+        id="vaDate"
+      ></div>
+
+      <div class="timezone">
+        America/New_York
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="controls">
+
+    <button
+      id="resetBtn"
+      class="primary-btn"
+    >
+      Reset
+    </button>
+
+    <button
+      id="eventBtn"
+      class="secondary-btn"
+    >
+      Create Event
+    </button>
+
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div
+  id="modalOverlay"
+  class="modal-overlay"
+>
+
+  <div class="modal">
+
+    <h2>Create Event</h2>
+
+    <div class="form-group">
+
+      <label>
+        Event Name
+      </label>
+
+      <input
+        type="text"
+        id="eventTitle"
+        placeholder="Meeting"
+      />
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        Description
+      </label>
+
+      <textarea
+        rows="4"
+        id="eventDescription"
+      ></textarea>
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        Duration (minutes)
+      </label>
+
+      <input
+        type="number"
+        id="eventDuration"
+        value="60"
+      />
+
+    </div>
+
+    <div class="modal-actions">
+
+      <button
+        id="cancelBtn"
+        class="secondary-btn"
+      >
+        Cancel
+      </button>
+
+      <button
+        id="saveBtn"
+        class="primary-btn"
+      >
+        Add to Calendar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+  const STEP_MINUTES = 5;
+
+  let offsetMinutes = 0;
+
+  let momentumVelocity = 0;
+
+  let momentumFrame = null;
+
+  const zones = {
+    vietnam: "Asia/Ho_Chi_Minh",
+    virginia: "America/New_York"
+  };
+
+  function getShiftedDate() {
+
+    return new Date(
+      Date.now() + offsetMinutes * 60000
+    );
+
+  }
+
+  function snapMinutes(date) {
+
+    const snapped = new Date(date);
+
+    const mins =
+      snapped.getMinutes();
+
+    const snappedMins =
+      Math.round(mins / 5) * 5;
+
+    snapped.setMinutes(snappedMins);
+    snapped.setSeconds(0);
+    snapped.setMilliseconds(0);
+
+    return snapped;
+
+  }
+
+  function formatTime(date, zone) {
+
+    return new Intl.DateTimeFormat(
+      "en-GB",
+      {
+        timeZone: zone,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }
+    ).format(date);
+
+  }
+
+  function formatDate(date, zone) {
+
+    return new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: zone,
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      }
+    ).format(date);
+
+  }
+
+  function updateDisplay() {
+
+    let shifted =
+      getShiftedDate();
+
+    shifted =
+      snapMinutes(shifted);
+
+    document.getElementById(
+      "vnTime"
+    ).textContent =
+      formatTime(
+        shifted,
+        zones.vietnam
+      );
+
+    document.getElementById(
+      "vnDate"
+    ).textContent =
+      formatDate(
+        shifted,
+        zones.vietnam
+      );
+
+    document.getElementById(
+      "vaTime"
+    ).textContent =
+      formatTime(
+        shifted,
+        zones.virginia
+      );
+
+    document.getElementById(
+      "vaDate"
+    ).textContent =
+      formatDate(
+        shifted,
+        zones.virginia
+      );
+
+  }
+
+  function applyStep(step) {
+
+    offsetMinutes +=
+      step * STEP_MINUTES;
+
+    updateDisplay();
+
+  }
+
+  function startMomentum() {
+
+    cancelAnimationFrame(
+      momentumFrame
+    );
+
+    function animate() {
+
+      if (
+        Math.abs(momentumVelocity)
+        < 0.01
+      ) {
+
+        momentumVelocity = 0;
+
+        return;
+
+      }
+
+      offsetMinutes +=
+        momentumVelocity;
+
+      updateDisplay();
+
+      momentumVelocity *= 0.93;
+
+      momentumFrame =
+        requestAnimationFrame(
+          animate
+        );
+
+    }
+
+    animate();
+
+  }
+
+  function addWheelSupport(card) {
+
+    card.addEventListener(
+      "wheel",
+      (e) => {
+
+        e.preventDefault();
+
+        const direction =
+          e.deltaY > 0 ? 1 : -1;
+
+        applyStep(direction);
+
+      },
+      { passive: false }
+    );
+
+  }
+
+  function addDragSupport(card) {
+
+    let startY = 0;
+
+    let lastY = 0;
+
+    let velocity = 0;
+
+    let accumulated = 0;
+
+    // Mouse
+    card.addEventListener(
+      "mousedown",
+      (e) => {
+
+        cancelAnimationFrame(
+          momentumFrame
+        );
+
+        startY = e.clientY;
+        lastY = e.clientY;
+
+        accumulated = 0;
+
+        function onMove(ev) {
+
+          const delta =
+            lastY - ev.clientY;
+
+          accumulated += delta;
+
+          velocity = delta * 0.03;
+
+          // Snap ONLY during drag
+          while (
+            Math.abs(accumulated)
+            >= 25
+          ) {
+
+            if (accumulated > 0) {
+
+              applyStep(1);
+
+              accumulated -= 25;
+
+            } else {
+
+              applyStep(-1);
+
+              accumulated += 25;
+
+            }
+
+          }
+
+          lastY = ev.clientY;
+
+        }
+
+        function onUp() {
+
+          momentumVelocity =
+            velocity;
+
+          startMomentum();
+
+          window.removeEventListener(
+            "mousemove",
+            onMove
+          );
+
+          window.removeEventListener(
+            "mouseup",
+            onUp
+          );
+
+        }
+
+        window.addEventListener(
+          "mousemove",
+          onMove
+        );
+
+        window.addEventListener(
+          "mouseup",
+          onUp
+        );
+
+      }
+    );
+
+    // Touch
+    let touchLastY = 0;
+
+    let touchAccumulated = 0;
+
+    card.addEventListener(
+      "touchstart",
+      (e) => {
+
+        cancelAnimationFrame(
+          momentumFrame
+        );
+
+        touchLastY =
+          e.touches[0].clientY;
+
+        touchAccumulated = 0;
+
+      },
+      { passive: true }
+    );
+
+    card.addEventListener(
+      "touchmove",
+      (e) => {
+
+        const currentY =
+          e.touches[0].clientY;
+
+        const delta =
+          touchLastY - currentY;
+
+        touchAccumulated += delta;
+
+        velocity = delta * 0.03;
+
+        while (
+          Math.abs(touchAccumulated)
+          >= 25
+        ) {
+
+          if (
+            touchAccumulated > 0
+          ) {
+
+            applyStep(1);
+
+            touchAccumulated -= 25;
+
+          } else {
+
+            applyStep(-1);
+
+            touchAccumulated += 25;
+
+          }
+
+        }
+
+        touchLastY = currentY;
+
+      },
+      { passive: false }
+    );
+
+    card.addEventListener(
+      "touchend",
+      () => {
+
+        momentumVelocity =
+          velocity;
+
+        startMomentum();
+
+      }
+    );
+
+  }
+
+  addWheelSupport(
+    document.getElementById(
+      "vnCard"
+    )
+  );
+
+  addWheelSupport(
+    document.getElementById(
+      "vaCard"
+    )
+  );
+
+  addDragSupport(
+    document.getElementById(
+      "vnCard"
+    )
+  );
+
+  addDragSupport(
+    document.getElementById(
+      "vaCard"
+    )
+  );
+
+  // Reset
+  document.getElementById(
+    "resetBtn"
+  ).addEventListener(
+    "click",
+    () => {
+
+      offsetMinutes = 0;
+
+      updateDisplay();
+
+    }
+  );
+
+  // Modal
+  const modal =
+    document.getElementById(
+      "modalOverlay"
+    );
+
+  document.getElementById(
+    "eventBtn"
+  ).addEventListener(
+    "click",
+    () => {
+
+      modal.style.display =
+        "flex";
+
+    }
+  );
+
+  document.getElementById(
+    "cancelBtn"
+  ).addEventListener(
+    "click",
+    () => {
+
+      modal.style.display =
+        "none";
+
+    }
+  );
+
+  // Create Event
+  document.getElementById(
+    "saveBtn"
+  ).addEventListener(
+    "click",
+    () => {
+
+      const title =
+        document.getElementById(
+          "eventTitle"
+        ).value || "New Event";
+
+      const description =
+        document.getElementById(
+          "eventDescription"
+        ).value || "";
+
+      const duration =
+        parseInt(
+          document.getElementById(
+            "eventDuration"
+          ).value
+        ) || 60;
+
+      const start =
+        snapMinutes(
+          getShiftedDate()
+        );
+
+      const end =
+        new Date(
+          start.getTime()
+          + duration * 60000
+        );
+
+      function formatICSDate(
+        date
+      ) {
+
+        return date
+          .toISOString()
+          .replace(
+            /[-:]/g,
+            ""
+          )
+          .split(".")[0] + "Z";
+
+      }
+
+      const ics = `
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${title}
+DESCRIPTION:${description}
+DTSTART:${formatICSDate(start)}
+DTEND:${formatICSDate(end)}
+END:VEVENT
+END:VCALENDAR
+      `.trim();
+
+      const blob =
+        new Blob(
+          [ics],
+          {
+            type:
+              "text/calendar;charset=utf-8"
+          }
+        );
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+      const a =
+        document.createElement(
+          "a"
+        );
+
+      a.href = url;
+      a.download = "event.ics";
+
+      document.body.appendChild(
+        a
+      );
+
+      a.click();
+
+      document.body.removeChild(
+        a
+      );
+
+      URL.revokeObjectURL(
+        url
+      );
+
+      modal.style.display =
+        "none";
+
+    }
+  );
+
+  updateDisplay();
+
+  setInterval(() => {
+
+    if (
+      offsetMinutes === 0
+    ) {
+
+      updateDisplay();
+
+    }
+
+  }, 1000);
+
+</script>
+
+</body>
+</html>
