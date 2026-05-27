@@ -459,7 +459,7 @@
 
 <script>
 
-  const STEP_MINUTES = 5;
+  const STEP_MINUTES = 1;
 
   let offsetMinutes = 0;
 
@@ -477,24 +477,6 @@
     return new Date(
       Date.now() + offsetMinutes * 60000
     );
-
-  }
-
-  function snapMinutes(date) {
-
-    const snapped = new Date(date);
-
-    const mins =
-      snapped.getMinutes();
-
-    const snappedMins =
-      Math.round(mins / 5) * 5;
-
-    snapped.setMinutes(snappedMins);
-    snapped.setSeconds(0);
-    snapped.setMilliseconds(0);
-
-    return snapped;
 
   }
 
@@ -531,9 +513,6 @@
 
     let shifted =
       getShiftedDate();
-
-    shifted =
-      snapMinutes(shifted);
 
     document.getElementById(
       "vnTime"
@@ -665,25 +644,25 @@
 
           accumulated += delta;
 
-          velocity = delta * 0.03;
+          velocity = delta * 0.06;
 
           // Snap ONLY during drag
           while (
             Math.abs(accumulated)
-            >= 25
+            >= 15
           ) {
 
             if (accumulated > 0) {
 
               applyStep(1);
 
-              accumulated -= 25;
+              accumulated -= 15;
 
             } else {
 
               applyStep(-1);
 
-              accumulated += 25;
+              accumulated += 15;
 
             }
 
@@ -897,9 +876,7 @@
         ) || 60;
 
       const start =
-        snapMinutes(
-          getShiftedDate()
-        );
+        getShiftedDate();
 
       const end =
         new Date(
