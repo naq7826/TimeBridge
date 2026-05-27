@@ -644,7 +644,7 @@
 
           accumulated += delta;
 
-          velocity = delta * 0.06;
+          velocity = delta * 0.09;
 
           // Snap ONLY during drag
           while (
@@ -738,11 +738,11 @@
 
         touchAccumulated += delta;
 
-        velocity = delta * 0.03;
+        velocity = delta * 0.09;
 
         while (
           Math.abs(touchAccumulated)
-          >= 25
+          >= 15
         ) {
 
           if (
@@ -751,13 +751,13 @@
 
             applyStep(1);
 
-            touchAccumulated -= 25;
+            touchAccumulated -= 15;
 
           } else {
 
             applyStep(-1);
 
-            touchAccumulated += 25;
+            touchAccumulated += 15;
 
           }
 
